@@ -53,8 +53,15 @@ class Wave2d:
         self.z = dist*self.mm # distance to propogate along the z axis
         self.uLimit = 1/(np.sqrt((2*self.delU*self.z)**2 + 1)* self.wl)
         self.vLimit = 1/(np.sqrt((2*self.delV*self.z)**2 + 1)* self.wl)
+        
+        k = self.wl**(-2) - self.u**2 - self.v**2
 
-        w = np.sqrt(self.wl**(-2) - self.u**2 - self.v**2)
+        # removing evanscent waves: limiting transfer function does that but to remove 
+        # numerical errors that may occur, safer to zero freqs > 1/wl
+        if not np.all(k > 0):
+            k[k < 0] = 0
+
+        w = np.sqrt(k)
         H = np.exp(1j*2*np.pi*w*self.z)
 
         # limiting frequencies above uLimit and vLimit of the transfer function
@@ -96,7 +103,7 @@ class Wave2d:
         maxFreqSetupX = maxAngleSetupX/self.wl
         maxFreqSetupY = maxAngleSetupY/self.wl
 
-        print(f'Max Freq and Angle the camera/plane can record without aliasing: {maxFreqPossible/self.mm} cycles/mm | {maxAnglePossible} radians')
+        print(f'Max Freq and Angle the camera/plane can record without aliasing: {maxFreqPossible*self.mm} cycles/mm | {maxAnglePossible} radians')
         
-        print(f'Max Freq and Angle the setup allows (freqs > do not reach the next plane): {(maxFreqSetupX/self.mm, maxFreqSetupY/self.mm)} cycles/mm | {(maxAngleSetupX, maxAngleSetupY)} radians')
+        print(f'Max Freq and Angle the setup allows (freqs > do not reach the next plane): {(maxFreqSetupX*self.mm, maxFreqSetupY*self.mm)} cycles/mm | {(maxAngleSetupX, maxAngleSetupY)} radians')
 
